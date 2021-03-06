@@ -1,18 +1,20 @@
+import 'dart:core';
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:build/build.dart';
 import 'package:build/src/builder/build_step.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
+import 'package:dartstruct/dartstruct.dart';
 import 'package:dartstruct_generator/src/name_provider.dart';
 import 'package:logging/logging.dart';
 import 'package:source_gen/source_gen.dart';
-import 'package:dartstruct/dartstruct.dart';
+
 import 'extensions/extensions.dart';
 import 'mappers/conversions/conversions.dart';
+import 'mappers/mappers.dart';
 import 'models/input_source.dart';
 import 'models/output_source.dart';
-import 'mappers/mappers.dart';
-import 'dart:core';
 
 class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
   final _emitter = DartEmitter();
@@ -21,68 +23,69 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
   Conversions _conversions;
 
   @override
-  Future<String> generateForAnnotatedElement(Element element, ConstantReader annotation, BuildStep buildStep) async {
-
-    final dartCoreLibrary = await buildStep.resolver.findLibraryByName('dart.core');
+  Future<String> generateForAnnotatedElement(
+      Element element, ConstantReader annotation, BuildStep buildStep) async {
+    final dartCoreLibrary =
+        await buildStep.resolver.findLibraryByName('dart.core');
+    // print(await buildStep.resolver.findLibraryByName('package:built_value'));
+    await (buildStep.resolver.libraries.forEach((element) {
+      print(element);
+    }));
 
     _conversions = Conversions(dartCoreLibrary);
 
     if (element is! ClassElement) {
-      throw InvalidGenerationSourceError('${element.displayName} cannot be annotated with @Mapper',
-        element: element,
-        todo: 'Remove @Mapper annotation'
-      );
+      throw InvalidGenerationSourceError(
+          '${element.displayName} cannot be annotated with @Mapper',
+          element: element,
+          todo: 'Remove @Mapper annotation');
     }
 
     final classElement = element as ClassElement;
 
     if (!classElement.constructors.any((c) => c.isDefaultConstructor)) {
-      throw InvalidGenerationSourceError('${element.displayName} must provide a default constructor',
-        element: element,
-        todo: 'Provide a default constructor'
-      );
+      throw InvalidGenerationSourceError(
+          '${element.displayName} must provide a default constructor',
+          element: element,
+          todo: 'Provide a default constructor');
     }
 
     final nameProvider = NameProvider(classElement);
-
 
     final mapperImpl = Class((builder) {
       builder
         ..name = '${classElement.displayName}Impl'
         ..abstract = false
         ..extend = refer(classElement.displayName)
-        ..methods.addAll(classElement.methods.where((method) => method.isAbstract).map((method) => _generateMethod(method, nameProvider.forMethod(method))));
+        ..methods.addAll(classElement.methods
+            .where((method) => method.isAbstract)
+            .map((method) =>
+                _generateMethod(method, nameProvider.forMethod(method))));
     });
 
     final code = '${mapperImpl.accept(_emitter)}';
 
     return _formatter.format(code);
-
   }
 
   Method _generateMethod(MethodElement method, NameProvider nameProvider) {
-
     if (method.parameters.isEmpty) {
       throw InvalidGenerationSourceError('Method must provide an argument',
-        todo: 'add source parameter',
-        element: method
-      );
+          todo: 'add source parameter', element: method);
     }
 
     if (method.parameters.length != 1) {
-      throw InvalidGenerationSourceError('Method must provide only one argument',
-        todo: 'provide only one argument',
-        element: method
-      );
+      throw InvalidGenerationSourceError(
+          'Method must provide only one argument',
+          todo: 'provide only one argument',
+          element: method);
     }
 
     final source = method.parameters.first;
 
     if (source.isNamed) {
       throw InvalidGenerationSourceError('Named parameters are not supported',
-        todo: 'provide a positional argument',
-        element: source
-      );
+          todo: 'provide a positional argument', element: source);
     }
 
     final sourceType = source.type;
@@ -90,38 +93,33 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
 
     if (returnType.isPrimitive || sourceType.isPrimitive) {
       throw InvalidGenerationSourceError('Primitive types are not supported',
-        element: method
-      );
+          element: method);
     }
 
     if (sourceType.isFuture || returnType.isFuture) {
       throw InvalidGenerationSourceError('Future types are not supported',
-        element: method
-      );
+          element: method);
     }
 
     if (sourceType.isCollection || returnType.isCollection) {
       throw InvalidGenerationSourceError('Collection types are not supported',
-        element: method
-      );
+          element: method);
     }
 
     if (sourceType.isDynamic || returnType.isDynamic) {
       throw InvalidGenerationSourceError('Dynamic type is not supported',
-        element: method
-      );
+          element: method);
     }
 
     if (returnType.isDynamic) {
       throw InvalidGenerationSourceError('Dynamic type is not supported',
-        element: method
-      );
+          element: method);
     }
 
     if (!returnType.hasEmptyConstructor) {
-      throw InvalidGenerationSourceError('Return type must provide an empty parameters constructor',
-        element: method.returnType.element
-      );
+      throw InvalidGenerationSourceError(
+          'Return type must provide an empty parameters constructor',
+          element: method.returnType.element);
     }
 
     return Method((builder) {
@@ -142,58 +140,95 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
     });
   }
 
-  Code _generateMethodBody(MethodElement methodElement, NameProvider nameProvider) {
-
+  Code _generateMethodBody(
+      MethodElement methodElement, NameProvider nameProvider) {
     final firstParameter = methodElement.parameters.first;
 
-    final inputSource = InputSource(firstParameter.type, firstParameter.displayName);
+    final inputSource =
+        InputSource(firstParameter.type, firstParameter.displayName);
 
-    final outputSource = OutputSource(methodElement.returnType, nameProvider.provideVariableName(methodElement.returnType));
+    final outputSource = OutputSource(methodElement.returnType,
+        nameProvider.provideVariableName(methodElement.returnType));
+    var outClass = (outputSource.type.element as ClassElement);
 
-    final setters = (outputSource.type.element as ClassElement).fields.where((field) => field.setter != null);
+    if (outClass.interfaces.any((element) =>
+        element.element.library.identifier ==
+        'package:built_value/built_value.dart')) {
+      final getters = outClass.fields.where((field) => field.getter != null);
 
+      final body = BlockBuilder();
+      final lambdaParam = Parameter((p) => p.name = 'b');
+
+      for (final getter in getters) {
+        final mapperExpression = _getMapperExpression(getter, inputSource);
+        if (mapperExpression != null) {
+          final assignmentExpression = refer(lambdaParam.name)
+              .property(getter.displayName)
+              .assign(mapperExpression);
+          body.addExpression(assignmentExpression);
+        } else {
+          final unmappedFieldMessage = InvalidGenerationSourceError(
+              'unmapped field \'${getter.displayName}\'',
+              element: getter);
+
+          _logger.warning(unmappedFieldMessage.toString());
+        }
+      }
+
+      final blockBuilder = BlockBuilder()
+        ..addExpression(CodeExpression(
+            Code('if (${inputSource.name} == null) return null')))
+        ..addExpression(
+            refer(outputSource.type.element.displayName).newInstance([
+          Method((m) => m
+            ..body = (body.build())
+            ..requiredParameters.add(lambdaParam)).closure
+        ]).returned);
+
+      return blockBuilder.build();
+    }
+
+    final setters = outClass.fields.where((field) => field.setter != null);
     final blockBuilder = BlockBuilder()
-      ..addExpression(CodeExpression(Code('if (${inputSource.name} == null) return null')))
-      ..addExpression(refer(outputSource.type.element.displayName).newInstance([]).assignFinal(outputSource.name));
+      ..addExpression(
+          CodeExpression(Code('if (${inputSource.name} == null) return null')))
+      ..addExpression(refer(outputSource.type.element.displayName)
+          .newInstance([]).assignFinal(outputSource.name));
 
     for (final setter in setters) {
-
       final mapperExpression = _getMapperExpression(setter, inputSource);
 
       if (mapperExpression != null) {
-
-        final assignmentExpression = refer(outputSource.name).property(setter.displayName).assign(mapperExpression);
+        final assignmentExpression = refer(outputSource.name)
+            .property(setter.displayName)
+            .assign(mapperExpression);
         blockBuilder.addExpression(assignmentExpression);
-
       } else {
-
-        final unmappedFieldMessage = InvalidGenerationSourceError('unmapped field \'${setter.displayName}\'',
-          element: setter
-        );
+        final unmappedFieldMessage = InvalidGenerationSourceError(
+            'unmapped field \'${setter.displayName}\'',
+            element: setter);
 
         _logger.warning(unmappedFieldMessage.toString());
-
       }
-
     }
 
     blockBuilder.addExpression(refer(outputSource.name).returned);
 
     return blockBuilder.build();
-
   }
 
-  Expression _getMapperExpression(FieldElement outputField, InputSource inputSource) {
-
-    MapperAdapter mapper = FieldMapperAdapter.create(inputSource, outputField.displayName);
+  Expression _getMapperExpression(
+      FieldElement outputField, InputSource inputSource) {
+    MapperAdapter mapper =
+        FieldMapperAdapter.create(inputSource, outputField.displayName);
 
     if (mapper == null) {
       return null;
     }
 
-
     if (_conversions.canConvert(mapper.returnType, outputField.type)) {
-      mapper = _conversions.convert(mapper.returnType, outputField.type, mapper);
+      mapper =
+          _conversions.convert(mapper.returnType, outputField.type, mapper);
       return mapper.expression;
     }
 
@@ -202,7 +237,5 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
     }
 
     return mapper.expression;
-
   }
-
 }
