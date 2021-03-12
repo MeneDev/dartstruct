@@ -1,11 +1,11 @@
 import 'package:dartstruct/dartstruct.dart';
 
 class Model {
-  String field;
+  late String field;
 }
 
 class Dto {
-  String field;
+  late String field;
 }
 
 @Mapper()

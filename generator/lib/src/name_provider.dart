@@ -3,20 +3,21 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:recase/recase.dart';
 
 class NameProvider {
-  List<String> _names;
+  final List<String> _names;
 
-  NameProvider(ClassElement classElement) {
-    _names = [
-      classElement.displayName,
-      ...classElement.accessors.map((accessor) => accessor.displayName).toSet(),
-      ...classElement.methods.map((method) => method.displayName),
-      ...classElement.constructors.map((constructor) => constructor.displayName).toSet()
-    ];
-  }
+  NameProvider(ClassElement classElement)
+      : _names = [
+          classElement.displayName,
+          ...classElement.accessors
+              .map((accessor) => accessor.displayName)
+              .toSet(),
+          ...classElement.methods.map((method) => method.displayName),
+          ...classElement.constructors
+              .map((constructor) => constructor.displayName)
+              .toSet()
+        ];
 
-  NameProvider._privateConstructor(List<String> names) {
-    _names = [ ...names ];
-  }
+  NameProvider._privateConstructor(List<String> names) : _names = [...names];
 
   NameProvider forMethod(MethodElement methodElement) {
     return NameProvider._privateConstructor([
@@ -26,15 +27,14 @@ class NameProvider {
   }
 
   String provideVariableName(DartType type) {
-
-    final displayName = type.element.displayName;
+    final displayName = type.element!.displayName;
 
     final name = ReCase(displayName).camelCase;
 
     var nameWithIndex = name;
     var counter = 1;
 
-    while(_names.contains(nameWithIndex)) {
+    while (_names.contains(nameWithIndex)) {
       nameWithIndex = '$name$counter';
       counter++;
     }
@@ -42,6 +42,5 @@ class NameProvider {
     _names.add(nameWithIndex);
 
     return nameWithIndex;
-
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:core';
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:build/build.dart';
 import 'package:build/src/builder/build_step.dart';
 import 'package:code_builder/code_builder.dart';
@@ -20,7 +21,7 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
   final _emitter = DartEmitter();
   final _formatter = DartFormatter();
   final _logger = Logger('dartstruct');
-  Conversions _conversions;
+  Conversions? _conversions;
 
   @override
   Future<String> generateForAnnotatedElement(
@@ -91,6 +92,8 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
     final sourceType = source.type;
     final returnType = method.returnType;
 
+    print(sourceType.nullabilitySuffix);
+
     if (returnType.isPrimitive || sourceType.isPrimitive) {
       throw InvalidGenerationSourceError('Primitive types are not supported',
           element: method);
@@ -116,9 +119,19 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
           element: method);
     }
 
-    if (!returnType.hasEmptyConstructor) {
+    print('Metadata for $returnType');
+    returnType.element!.metadata.forEach((element) {
+      print(element.element!.name);
+      print(element.runtimeType);
+    });
+
+    final isFreezed = returnType.element!.metadata.any((element) {
+      return element.element!.name == 'freezed';
+    });
+
+    if (!isFreezed && !returnType.hasEmptyConstructor) {
       throw InvalidGenerationSourceError(
-          'Return type must provide an empty parameters constructor',
+          'Return type must provide an empty parameters constructor or have @freezed annotation',
           element: method.returnType.element);
     }
 
@@ -127,7 +140,7 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
         ..annotations.add(CodeExpression(Code('override')))
         ..name = method.displayName
         ..requiredParameters.add(_generateSourceParameter(source))
-        ..returns = refer(returnType.element.displayName)
+        ..returns = refer(returnType.element!.displayName)
         ..body = _generateMethodBody(method, nameProvider);
     });
   }
@@ -136,7 +149,7 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
     return Parameter((builder) {
       builder
         ..name = source.name
-        ..type = refer(source.type.element.displayName);
+        ..type = refer(source.type.element!.displayName);
     });
   }
 
@@ -151,9 +164,14 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
         nameProvider.provideVariableName(methodElement.returnType));
     var outClass = (outputSource.type.element as ClassElement);
 
-    if (outClass.interfaces.any((element) =>
+    var outIsBuiltValue = outClass.interfaces.any((element) =>
         element.element.library.identifier ==
-        'package:built_value/built_value.dart')) {
+        'package:built_value/built_value.dart');
+
+    var outIsFreezed =
+        outClass.metadata.any((element) => element.element!.name == 'freezed');
+
+    if (outIsBuiltValue) {
       final getters = outClass.fields.where((field) => field.getter != null);
 
       final body = BlockBuilder();
@@ -175,25 +193,81 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
         }
       }
 
-      final blockBuilder = BlockBuilder()
-        ..addExpression(CodeExpression(
-            Code('if (${inputSource.name} == null) return null')))
-        ..addExpression(
-            refer(outputSource.type.element.displayName).newInstance([
-          Method((m) => m
-            ..body = (body.build())
-            ..requiredParameters.add(lambdaParam)).closure
-        ]).returned);
+      final blockBuilder = BlockBuilder();
+
+      print(
+          'In builder nullabilitySuffix: ${inputSource.type.nullabilitySuffix}');
+      if (inputSource.type.nullabilitySuffix != NullabilitySuffix.none) {
+        blockBuilder.addExpression(CodeExpression(
+            Code('if (${inputSource.name} == null) return null')));
+      }
+
+      blockBuilder.addExpression(
+          refer(outputSource.type.element!.displayName).newInstance([
+        Method((m) => m
+          ..body = (body.build())
+          ..requiredParameters.add(lambdaParam)).closure
+      ]).returned);
+
+      return blockBuilder.build();
+    }
+
+    if (outIsFreezed) {
+      print('Constructors of $outClass: ${outClass.constructors}');
+
+      var factories = outClass.methods.where((element) => element.hasFactory);
+
+      print('factories of $outClass: $factories');
+
+      var ctor = outClass.constructors.first;
+      final blockBuilder = BlockBuilder();
+
+      print(
+          'In builder nullabilitySuffix: ${inputSource.type.nullabilitySuffix}');
+      if (inputSource.type.nullabilitySuffix != NullabilitySuffix.none) {
+        blockBuilder.addExpression(CodeExpression(
+            Code('if (${inputSource.name} == null) return null')));
+      }
+
+      var positional =
+          ctor.parameters.where((parameter) => parameter.isPositional);
+      var named = ctor.parameters.where((parameter) => parameter.isNamed);
+
+      print('positional of $ctor: $positional');
+      print('named of $ctor: $named');
+
+      var posExps = positional.map((e) => _getMapperExpression(e, inputSource));
+
+      print('posExps of $ctor: $posExps');
+
+      var namedExps = {
+        for (var name in named)
+          name.name: _getMapperExpression(name, inputSource)
+      };
+
+      print('namedExps of $ctor: $namedExps');
+
+      blockBuilder.addExpression(refer(outputSource.type.element!.displayName)
+          .newInstance(posExps, namedExps)
+          .assignFinal(outputSource.name));
+
+      blockBuilder.addExpression(refer(outputSource.name).returned);
 
       return blockBuilder.build();
     }
 
     final setters = outClass.fields.where((field) => field.setter != null);
-    final blockBuilder = BlockBuilder()
-      ..addExpression(
-          CodeExpression(Code('if (${inputSource.name} == null) return null')))
-      ..addExpression(refer(outputSource.type.element.displayName)
-          .newInstance([]).assignFinal(outputSource.name));
+    final blockBuilder = BlockBuilder();
+
+    print(
+        'In builder nullabilitySuffix: ${inputSource.type.nullabilitySuffix}');
+    if (inputSource.type.nullabilitySuffix != NullabilitySuffix.none) {
+      blockBuilder.addExpression(
+          CodeExpression(Code('if (${inputSource.name} == null) return null')));
+    }
+
+    blockBuilder.addExpression(refer(outputSource.type.element!.displayName)
+        .newInstance([]).assignFinal(outputSource.name));
 
     for (final setter in setters) {
       final mapperExpression = _getMapperExpression(setter, inputSource);
@@ -217,18 +291,18 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
     return blockBuilder.build();
   }
 
-  Expression _getMapperExpression(
-      FieldElement outputField, InputSource inputSource) {
-    MapperAdapter mapper =
+  Expression? _getMapperExpression(
+      VariableElement outputField, InputSource inputSource) {
+    MapperAdapter? mapper =
         FieldMapperAdapter.create(inputSource, outputField.displayName);
 
     if (mapper == null) {
       return null;
     }
 
-    if (_conversions.canConvert(mapper.returnType, outputField.type)) {
+    if (_conversions!.canConvert(mapper.returnType, outputField.type)) {
       mapper =
-          _conversions.convert(mapper.returnType, outputField.type, mapper);
+          _conversions!.convert(mapper.returnType, outputField.type, mapper);
       return mapper.expression;
     }
 

@@ -1,43 +1,38 @@
-
-
 import 'package:dartstruct/dartstruct.dart';
 
 part 'num_mapper.g.dart';
 
 class Model {
-  int integer$;
-  int nullInteger$;
-  String string$;
-  String nullString$;
-  num number$;
-  num nullNumber$;
-  double double$;
-  double nullDouble$;
-  bool true$;
-  bool false$;
-  bool nullBool$;
+  late int integer$;
+  late int? nullInteger$;
+  late String string$;
+  late String? nullString$;
+  late num number$;
+  late num? nullNumber$;
+  late double double$;
+  late double? nullDouble$;
+  late bool true$;
+  late bool false$;
+  late bool? nullBool$;
 }
 
 class Dto {
-  num integer$;
-  num nullInteger$;
-  num string$;
-  num nullString$;
-  num number$;
-  num nullNumber$;
-  num double$;
-  num nullDouble$;
-  num true$;
-  num false$;
-  num nullBool$;
+  late num integer$;
+  late num nullInteger$;
+  late num string$;
+  late num nullString$;
+  late num number$;
+  late num nullNumber$;
+  late num double$;
+  late num nullDouble$;
+  late num true$;
+  late num false$;
+  late num nullBool$;
 }
-
 
 @Mapper()
 abstract class NumMapper {
-
   static NumMapper get INSTANCE => NumMapperImpl();
 
   Dto modelToDto(Model model);
-
 }

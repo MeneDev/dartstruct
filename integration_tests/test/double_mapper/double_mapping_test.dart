@@ -1,11 +1,9 @@
-
 import 'package:test/test.dart';
 
 import 'double_mapper.dart';
 
 void main() {
   group('Double Mapper', () {
-
     final model = Model()
       ..string$ = '7.1'
       ..nullString$ = null
@@ -19,81 +17,59 @@ void main() {
       ..false$ = false
       ..nullBool$ = null;
 
-
     test('Should be instantiated', () {
       expect(DoubleMapper.INSTANCE, isNotNull);
     });
 
     test('Should assign field when input is number', () {
-
       final actual = DoubleMapper.INSTANCE.modelToDto(model);
-      expect(actual.number$, equals(4.0));
-
+      expect(actual!.number$, equals(4.0));
     });
 
-     test('Should assign field when input is null number', () {
-
+    test('Should assign field when input is null number', () {
       final actual = DoubleMapper.INSTANCE.modelToDto(model);
-      expect(actual.nullNumber$, equals(null));
-
+      expect(actual!.nullNumber$, equals(null));
     });
 
     test('Should assign field when input is integer', () {
-
       final actual = DoubleMapper.INSTANCE.modelToDto(model);
-      expect(actual.integer$, equals(1.0));
-
+      expect(actual!.integer$, equals(1.0));
     });
 
-     test('Should assign field when input is null integer', () {
-
+    test('Should assign field when input is null integer', () {
       final actual = DoubleMapper.INSTANCE.modelToDto(model);
-      expect(actual.nullInteger$, equals(null));
-
+      expect(actual!.nullInteger$, equals(null));
     });
 
     test('Should assign field when input is double', () {
-
       final actual = DoubleMapper.INSTANCE.modelToDto(model);
-      expect(actual.double$, equals(1.1));
-
+      expect(actual!.double$, equals(1.1));
     });
 
-     test('Should assign field when input is null double', () {
-
+    test('Should assign field when input is null double', () {
       final actual = DoubleMapper.INSTANCE.modelToDto(model);
-      expect(actual.nullDouble$, equals(null));
-
+      expect(actual!.nullDouble$, equals(null));
     });
 
     test('Should assign field when input is string', () {
-
       final actual = DoubleMapper.INSTANCE.modelToDto(model);
-      expect(actual.string$, equals(7.1));
-
+      expect(actual!.string$, equals(7.1));
     });
 
     test('Should assign field when input is null string', () {
-
       final actual = DoubleMapper.INSTANCE.modelToDto(model);
-      expect(actual.nullString$, equals(null));
-
+      expect(actual!.nullString$, equals(null));
     });
 
-     test('Should assign field when input is bool', () {
-
+    test('Should assign field when input is bool', () {
       final actual = DoubleMapper.INSTANCE.modelToDto(model);
-      expect(actual.true$, equals(1.0));
-      expect(actual.false$, equals(0));
-
+      expect(actual!.true$, equals(1.0));
+      expect(actual!.false$, equals(0));
     });
 
-     test('Should assign field when input is null bool', () {
-
+    test('Should assign field when input is null bool', () {
       final actual = DoubleMapper.INSTANCE.modelToDto(model);
-      expect(actual.nullBool$, equals(null));
-
+      expect(actual!.nullBool$, equals(null));
     });
-
   });
 }

@@ -1,51 +1,46 @@
-
-
 import 'package:dartstruct/dartstruct.dart';
 
 part 'bool_mapper.g.dart';
 
 class Model {
-  int trueInteger$;
-  int falseInteger$;
-  int nullInteger$;
-  String trueString$;
-  String falseString$;
-  String nullString$;
-  num trueNumber$;
-  num falseNumber$;
-  num nullNumber$;
-  double trueDouble$;
-  double falseDouble$;
-  double nullDouble$;
-  bool true$;
-  bool false$;
-  bool nullBool$;
+  late int trueInteger$;
+  late int falseInteger$;
+  late int nullInteger$;
+  late String trueString$;
+  late String falseString$;
+  String? nullString$;
+  late num trueNumber$;
+  late num falseNumber$;
+  num? nullNumber$;
+  late double trueDouble$;
+  late double falseDouble$;
+  double? nullDouble$;
+  late bool true$;
+  late bool false$;
+  bool? nullBool$;
 }
 
 class Dto {
-  bool trueInteger$;
-  bool falseInteger$;
-  bool nullInteger$;
-  bool trueString$;
-  bool falseString$;
-  bool nullString$;
-  bool trueNumber$;
-  bool falseNumber$;
-  bool nullNumber$;
-  bool trueDouble$;
-  bool falseDouble$;
-  bool nullDouble$;
-  bool true$;
-  bool false$;
-  bool nullBool$;
+  late bool trueInteger$;
+  late bool falseInteger$;
+  late bool nullInteger$;
+  late bool trueString$;
+  late bool falseString$;
+  late bool nullString$;
+  late bool trueNumber$;
+  late bool falseNumber$;
+  late bool nullNumber$;
+  late bool trueDouble$;
+  late bool falseDouble$;
+  late bool nullDouble$;
+  late bool true$;
+  late bool false$;
+  late bool nullBool$;
 }
-
 
 @Mapper()
 abstract class BoolMapper {
-
   static BoolMapper get INSTANCE => BoolMapperImpl();
 
-  Dto modelToDto(Model model);
-
+  Dto? modelToDto(Model? model);
 }
