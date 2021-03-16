@@ -62,9 +62,9 @@ void main() {
     });
 
     test('Should assign field when input is bool', () {
-      final actual = DoubleMapper.INSTANCE.modelToDto(model);
-      expect(actual!.true$, equals(1.0));
-      expect(actual!.false$, equals(0));
+      final actual = DoubleMapper.INSTANCE.modelToDto(model)!;
+      expect(actual.true$, equals(1.0));
+      expect(actual.false$, equals(0));
     });
 
     test('Should assign field when input is null bool', () {

@@ -33,7 +33,7 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
       print(element);
     }));
 
-    _conversions = Conversions(dartCoreLibrary);
+    _conversions = Conversions(dartCoreLibrary!);
 
     if (element is! ClassElement) {
       throw InvalidGenerationSourceError(
@@ -42,7 +42,7 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
           todo: 'Remove @Mapper annotation');
     }
 
-    final classElement = element as ClassElement;
+    final classElement = element;
 
     if (!classElement.constructors.any((c) => c.isDefaultConstructor)) {
       throw InvalidGenerationSourceError(
