@@ -92,7 +92,11 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
     final sourceType = source.type;
     final returnType = method.returnType;
 
-    print(sourceType.nullabilitySuffix);
+    if (returnType.nullabilitySuffix != sourceType.nullabilitySuffix) {
+      throw InvalidGenerationSourceError(
+          'nullability incompatible, return type has ${returnType} but source has ${sourceType}',
+          element: method);
+    }
 
     if (returnType.isPrimitive || sourceType.isPrimitive) {
       throw InvalidGenerationSourceError('Primitive types are not supported',
@@ -140,16 +144,29 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
         ..annotations.add(CodeExpression(Code('override')))
         ..name = method.displayName
         ..requiredParameters.add(_generateSourceParameter(source))
-        ..returns = refer(returnType.element!.displayName)
+        ..returns = refer(returnType.element!.displayName +
+            _nullability(returnType.nullabilitySuffix))
         ..body = _generateMethodBody(method, nameProvider);
     });
+  }
+
+  String _nullability(NullabilitySuffix nullabilitySuffix) {
+    switch (nullabilitySuffix) {
+      case NullabilitySuffix.question:
+        return '?';
+      case NullabilitySuffix.star:
+        return '*';
+      case NullabilitySuffix.none:
+        return '';
+    }
   }
 
   Parameter _generateSourceParameter(ParameterElement source) {
     return Parameter((builder) {
       builder
         ..name = source.name
-        ..type = refer(source.type.element!.displayName);
+        ..type = refer(source.type.element!.displayName +
+            _nullability(source.type.nullabilitySuffix));
     });
   }
 
