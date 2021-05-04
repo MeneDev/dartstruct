@@ -308,13 +308,13 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
     return blockBuilder.build();
   }
 
-  Expression? _getMapperExpression(
+  Expression _getMapperExpression(
       VariableElement outputField, InputSource inputSource) {
     MapperAdapter? mapper =
         FieldMapperAdapter.create(inputSource, outputField.displayName);
 
     if (mapper == null) {
-      return null;
+      throw ArgumentError('mapper == null');
     }
 
     if (_conversions!.canConvert(mapper.returnType, outputField.type)) {
@@ -324,7 +324,7 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
     }
 
     if (mapper.returnType != outputField.type) {
-      return null;
+      throw ArgumentError('mapper.returnType != outputField.type');
     }
 
     return mapper.expression;
