@@ -289,18 +289,18 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
     for (final setter in setters) {
       final mapperExpression = _getMapperExpression(setter, inputSource);
 
-      if (mapperExpression != null) {
-        final assignmentExpression = refer(outputSource.name)
-            .property(setter.displayName)
-            .assign(mapperExpression);
-        blockBuilder.addExpression(assignmentExpression);
-      } else {
-        final unmappedFieldMessage = InvalidGenerationSourceError(
-            'unmapped field \'${setter.displayName}\'',
-            element: setter);
-
-        _logger.warning(unmappedFieldMessage.toString());
-      }
+      // if (mapperExpression != null) {
+      final assignmentExpression = refer(outputSource.name)
+          .property(setter.displayName)
+          .assign(mapperExpression);
+      blockBuilder.addExpression(assignmentExpression);
+      // } else {
+      //   final unmappedFieldMessage = InvalidGenerationSourceError(
+      //       'unmapped field \'${setter.displayName}\'',
+      //       element: setter);
+      //
+      //   _logger.warning(unmappedFieldMessage.toString());
+      // }
     }
 
     blockBuilder.addExpression(refer(outputSource.name).returned);
