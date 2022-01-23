@@ -17,6 +17,17 @@ class Model {
 }
 
 class Dto {
+  late double? integer$nullable;
+  late double? nullInteger$nullable;
+  late double? string$nullable;
+  late double? nullString$nullable;
+  late double? number$nullable;
+  late double? nullNumber$nullable;
+  late double? double$nullable;
+  late double? nullDouble$nullable;
+  late double? true$nullable;
+  late double? false$nullable;
+  late double? nullBool$nullable;
   late double integer$;
   late double nullInteger$;
   late double string$;
