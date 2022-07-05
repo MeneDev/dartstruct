@@ -94,7 +94,7 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
 
     if (returnType.nullabilitySuffix != sourceType.nullabilitySuffix) {
       throw InvalidGenerationSourceError(
-          'nullability incompatible, return type has ${returnType} but source has ${sourceType}',
+          'nullability incompatible, return type has $returnType but source has $sourceType',
           element: method);
     }
 
