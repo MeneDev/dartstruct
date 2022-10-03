@@ -14,10 +14,10 @@ class FieldMapperAdapter implements MapperAdapter {
 
   @override
   Expression get expression {
-    print('_mapper: $_mapper');
-    print('_mapper.expression: ${_mapper.expression}');
-    print('_fieldElement: ${_fieldElement}');
-    print('_fieldElement.displayName: ${_fieldElement.displayName}');
+    // print('_mapper: $_mapper');
+    // print('_mapper.expression: ${_mapper.expression}');
+    // print('_fieldElement: ${_fieldElement}');
+    // print('_fieldElement.displayName: ${_fieldElement.displayName}');
 
     return _mapper.expression.property(_fieldElement.displayName);
   }
@@ -33,12 +33,12 @@ class FieldMapperAdapter implements MapperAdapter {
     var isFreezed = classElement.metadata
         .any((element) => element.element!.name == 'freezed');
 
-    print('isFreezed: ${isFreezed}');
-    print('classElement.fields: ${classElement.fields}');
-    print(
-        'classElement.unnamedConstructor: ${classElement.unnamedConstructor}');
-    print(
-        'classElement.constructors.first: ${classElement.constructors.first}');
+    // print('isFreezed: ${isFreezed}');
+    // print('classElement.fields: ${classElement.fields}');
+    // print(
+    //     'classElement.unnamedConstructor: ${classElement.unnamedConstructor}');
+    // print(
+    //     'classElement.constructors.first: ${classElement.constructors.first}');
 
     final inputFieldElement = !isFreezed
         ? classElement.fields.firstWhereOrNull(

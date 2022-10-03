@@ -30,7 +30,7 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
         await buildStep.resolver.findLibraryByName('dart.core');
     // print(await buildStep.resolver.findLibraryByName('package:built_value'));
     await (buildStep.resolver.libraries.forEach((element) {
-      print(element);
+      // print(element);
     }));
 
     _conversions = Conversions(dartCoreLibrary!);
@@ -123,10 +123,10 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
           element: method);
     }
 
-    print('Metadata for $returnType');
+    // print('Metadata for $returnType');
     returnType.element!.metadata.forEach((element) {
-      print(element.element!.name);
-      print(element.runtimeType);
+      // print(element.element!.name);
+      // print(element.runtimeType);
     });
 
     final isFreezed = returnType.element!.metadata.any((element) {
@@ -212,8 +212,8 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
 
       final blockBuilder = BlockBuilder();
 
-      print(
-          'In builder nullabilitySuffix: ${inputSource.type.nullabilitySuffix}');
+      // print(
+      //     'In builder nullabilitySuffix: ${inputSource.type.nullabilitySuffix}');
       if (inputSource.type.nullabilitySuffix != NullabilitySuffix.none) {
         blockBuilder.addExpression(CodeExpression(
             Code('if (${inputSource.name} == null) return null')));
@@ -230,17 +230,17 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
     }
 
     if (outIsFreezed) {
-      print('Constructors of $outClass: ${outClass.constructors}');
+      // print('Constructors of $outClass: ${outClass.constructors}');
 
       var factories = outClass.methods.where((element) => element.hasFactory);
 
-      print('factories of $outClass: $factories');
+      // print('factories of $outClass: $factories');
 
       var ctor = outClass.constructors.first;
       final blockBuilder = BlockBuilder();
 
-      print(
-          'In builder nullabilitySuffix: ${inputSource.type.nullabilitySuffix}');
+      // print(
+      //     'In builder nullabilitySuffix: ${inputSource.type.nullabilitySuffix}');
       if (inputSource.type.nullabilitySuffix != NullabilitySuffix.none) {
         blockBuilder.addExpression(CodeExpression(
             Code('if (${inputSource.name} == null) return null')));
@@ -250,19 +250,19 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
           ctor.parameters.where((parameter) => parameter.isPositional);
       var named = ctor.parameters.where((parameter) => parameter.isNamed);
 
-      print('positional of $ctor: $positional');
-      print('named of $ctor: $named');
+      // print('positional of $ctor: $positional');
+      // print('named of $ctor: $named');
 
       var posExps = positional.map((e) => _getMapperExpression(e, inputSource));
 
-      print('posExps of $ctor: $posExps');
+      // print('posExps of $ctor: $posExps');
 
       var namedExps = {
         for (var name in named)
           name.name: _getMapperExpression(name, inputSource)
       };
 
-      print('namedExps of $ctor: $namedExps');
+      // print('namedExps of $ctor: $namedExps');
 
       blockBuilder.addExpression(refer(outputSource.type.element!.displayName)
           .newInstance(posExps, namedExps)
@@ -276,8 +276,8 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
     final setters = outClass.fields.where((field) => field.setter != null);
     final blockBuilder = BlockBuilder();
 
-    print(
-        'In builder nullabilitySuffix: ${inputSource.type.nullabilitySuffix}');
+    // print(
+    //     'In builder nullabilitySuffix: ${inputSource.type.nullabilitySuffix}');
     if (inputSource.type.nullabilitySuffix != NullabilitySuffix.none) {
       blockBuilder.addExpression(
           CodeExpression(Code('if (${inputSource.name} == null) return null')));
