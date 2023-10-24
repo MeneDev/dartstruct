@@ -124,7 +124,7 @@ class DartStructGenerator extends GeneratorForAnnotation<Mapper> {
     }
 
     // print('Metadata for $returnType');
-    returnType.element!.metadata.forEach((element) {
+    returnType.element2!.metadata.forEach((element) {
       // print(element.element!.name);
       // print(element.runtimeType);
     });
