@@ -17,11 +17,11 @@ class Conversions {
       HashMap<_ConvertionKey, _MapperFactory>();
 
   Conversions(LibraryElement dartCoreLibrary) {
-    DartType intType = dartCoreLibrary.getType('int')!.thisType;
-    DartType doubleType = dartCoreLibrary.getType('double')!.thisType;
-    DartType boolType = dartCoreLibrary.getType('bool')!.thisType;
-    DartType numType = dartCoreLibrary.getType('num')!.thisType;
-    DartType stringType = dartCoreLibrary.getType('String')!.thisType;
+    DartType intType = dartCoreLibrary.typeProvider.intType;
+    DartType doubleType = dartCoreLibrary.typeProvider.doubleType;
+    DartType boolType =  dartCoreLibrary.typeProvider.boolType;
+    DartType numType =  dartCoreLibrary.typeProvider.numType;
+    DartType stringType =  dartCoreLibrary.typeProvider.stringType;
 
     // to string
     _addConvertion(intType, stringType,
