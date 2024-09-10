@@ -11,7 +11,7 @@ dependencies:
   analyzer: <6.0.0
   build: ^2.4.1
   code_builder: ^4.10.0
-  dart_style: <2.3.6
+  dart_style: <2.3.8
   equatable: ^2.0.5
   logging: ^1.2.0
   recase: ^4.1.0
