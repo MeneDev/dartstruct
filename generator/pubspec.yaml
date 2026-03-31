@@ -15,7 +15,7 @@ dependencies:
   equatable: ^2.0.5
   logging: ^1.2.0
   recase: ^4.1.0
-  source_gen: ^1.5.0
+  source_gen: ^4.0.0
 
 
 dev_dependencies:
